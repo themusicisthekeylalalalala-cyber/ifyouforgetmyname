@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>if you forget my name, you will go astray, like a killer whale trapped in a bay</title>
     <style>
+        /* RESET — pure black, square corners, book-like serif */
         * {
             margin: 0;
             padding: 0;
@@ -146,6 +147,18 @@
             overflow-y: auto;
         }
 
+        .playlist-container::-webkit-scrollbar {
+            width: 6px;
+            background-color: #0a0a0a;
+        }
+        .playlist-container::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        .playlist-container::-webkit-scrollbar-thumb {
+            background: #2c2c2c;
+            border-radius: 0px;
+        }
+
         .playlist-item {
             font-family: 'Courier New', monospace;
             font-size: 0.7rem;
@@ -167,6 +180,7 @@
             letter-spacing: 0.5px;
         }
 
+        /* Custom simple audio player */
         .custom-audio {
             display: flex;
             align-items: center;
@@ -204,6 +218,7 @@
             text-align: center;
         }
 
+        /* CUSTOM SLIDERS - CENTERED SQUARE THUMBS */
         .seek-bar, .volume-bar {
             -webkit-appearance: none;
             appearance: none;
@@ -237,6 +252,28 @@
 
         .seek-bar::-webkit-slider-thumb:hover, .volume-bar::-webkit-slider-thumb:hover {
             background: #ffffff;
+        }
+
+        .seek-bar::-webkit-slider-runnable-track, .volume-bar::-webkit-slider-runnable-track {
+            height: 2px;
+            background: #3a3a3a;
+            border: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .seek-bar::-moz-range-thumb, .volume-bar::-moz-range-thumb {
+            width: 8px;
+            height: 8px;
+            background: #aaaaaa;
+            cursor: pointer;
+            border: none;
+            border-radius: 0px;
+        }
+
+        .seek-bar::-moz-range-track, .volume-bar::-moz-range-track {
+            height: 2px;
+            background: #3a3a3a;
         }
 
         .error-badge {
@@ -324,6 +361,7 @@
             border-color: #777;
         }
 
+        /* Error message - NO bold left margin */
         .error-msg {
             color: #ff9a8a;
             background: #1f1212;
@@ -447,18 +485,32 @@
         }
 
         @media (max-width: 800px) {
-            .main-layout { flex-direction: column; }
-            .sidebar { width: 100%; position: static; max-height: none; }
-            body { padding: 1rem; }
-            .content-panel { padding: 1.2rem; }
-            .seek-bar { width: 60px; }
-            .volume-bar { width: 30px; }
+            .main-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                position: static;
+                max-height: none;
+            }
+            body {
+                padding: 1rem;
+            }
+            .content-panel {
+                padding: 1.2rem;
+            }
+            .seek-bar {
+                width: 60px;
+            }
+            .volume-bar {
+                width: 30px;
+            }
         }
     </style>
 </head>
 <body>
 <div class="main-layout">
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="toc" id="tocContainer">
             <h3>contents</h3>
             <ul id="tocList">
@@ -476,6 +528,7 @@
                 <li><a class="chapter-link" data-page="90">Chapter 6: MORIARTY WAS REAL</a></li>
             </ul>
         </div>
+
         <div class="playlist-box" id="playlistContainer">
             <h3>playlist</h3>
             <div class="playlist-container" id="playlistList"></div>
@@ -501,63 +554,112 @@
 
 <script>
     // ============================================================
-    // SIMPLE PASSWORD CHECK - NO HASH, NO CRYPTO
-    // PASSWORD: stayalive
+    // CUSTOM AUDIO PLAYER - WITH CENTERED SQUARE SLIDER THUMBS
     // ============================================================
     
-    const CORRECT_PASSWORD = "stayalive";
-    
-    // Simple Audio Player
     class SimpleAudioPlayer {
-        constructor(audio, playBtn, timeDisplay, seekBar, volumeBar, errorSpan) {
-            this.audio = audio;
-            this.playBtn = playBtn;
+        constructor(audioElement, playPauseBtn, timeDisplay, seekBar, volumeBar, errorSpan) {
+            this.audio = audioElement;
+            this.playPauseBtn = playPauseBtn;
             this.timeDisplay = timeDisplay;
             this.seekBar = seekBar;
             this.volumeBar = volumeBar;
             this.errorSpan = errorSpan;
             this.isPlaying = false;
+            
             this.init();
         }
+        
         init() {
-            this.playBtn.onclick = () => this.toggle();
-            this.seekBar.oninput = (e) => this.audio.currentTime = parseFloat(e.target.value);
-            this.volumeBar.oninput = (e) => this.audio.volume = parseFloat(e.target.value);
-            this.audio.ontimeupdate = () => this.update();
-            this.audio.onloadedmetadata = () => this.updateDuration();
-            this.audio.onended = () => { this.playBtn.textContent = '▶'; this.isPlaying = false; };
+            this.playPauseBtn.addEventListener('click', () => this.togglePlay());
+            this.seekBar.addEventListener('input', (e) => this.seek(e.target.value));
+            this.volumeBar.addEventListener('input', (e) => this.setVolume(e.target.value));
+            this.audio.addEventListener('timeupdate', () => this.updateProgress());
+            this.audio.addEventListener('ended', () => this.onEnded());
+            this.audio.addEventListener('loadedmetadata', () => this.updateDuration());
+            this.audio.addEventListener('canplay', () => this.onCanPlay());
+            this.audio.addEventListener('error', (e) => this.onError(e));
+            
             this.audio.volume = 0.7;
             this.volumeBar.value = 0.7;
         }
-        toggle() {
+        
+        togglePlay() {
             if (this.isPlaying) {
                 this.audio.pause();
-                this.playBtn.textContent = '▶';
+                this.playPauseBtn.textContent = '▶';
                 this.isPlaying = false;
             } else {
-                this.audio.play().then(() => {
-                    this.playBtn.textContent = '⏸';
-                    this.isPlaying = true;
-                }).catch(() => { if(this.errorSpan) this.errorSpan.textContent = '⚠'; });
+                const playPromise = this.audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        this.playPauseBtn.textContent = '⏸';
+                        this.isPlaying = true;
+                        if (this.errorSpan) this.errorSpan.textContent = '';
+                    }).catch(error => {
+                        console.warn('Playback error:', error);
+                        this.playPauseBtn.textContent = '▶';
+                        this.isPlaying = false;
+                        if (this.errorSpan) this.errorSpan.textContent = '⚠ cannot play';
+                    });
+                }
             }
         }
-        update() {
-            if (this.audio.duration) {
+        
+        seek(value) {
+            this.audio.currentTime = parseFloat(value);
+        }
+        
+        setVolume(value) {
+            this.audio.volume = parseFloat(value);
+        }
+        
+        updateProgress() {
+            if (this.audio.duration && !isNaN(this.audio.duration)) {
                 this.seekBar.value = this.audio.currentTime;
                 this.seekBar.max = this.audio.duration;
-                this.timeDisplay.textContent = `${this.format(this.audio.currentTime)} / ${this.format(this.audio.duration)}`;
+                this.updateTimeDisplay();
             }
         }
+        
         updateDuration() {
-            if (this.audio.duration) {
+            if (this.audio.duration && !isNaN(this.audio.duration)) {
                 this.seekBar.max = this.audio.duration;
-                this.timeDisplay.textContent = `${this.format(this.audio.currentTime)} / ${this.format(this.audio.duration)}`;
+                this.updateTimeDisplay();
             }
         }
-        format(t) { if (isNaN(t)) return '0:00'; const m = Math.floor(t/60); const s = Math.floor(t%60); return `${m}:${s.toString().padStart(2,'0')}`; }
+        
+        updateTimeDisplay() {
+            const current = this.formatTime(this.audio.currentTime);
+            const duration = this.formatTime(this.audio.duration);
+            this.timeDisplay.textContent = `${current} / ${duration}`;
+        }
+        
+        formatTime(seconds) {
+            if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        onEnded() {
+            this.playPauseBtn.textContent = '▶';
+            this.isPlaying = false;
+        }
+        
+        onCanPlay() {
+            if (this.errorSpan) this.errorSpan.textContent = '';
+        }
+        
+        onError(e) {
+            console.warn('Audio error:', e);
+            this.playPauseBtn.textContent = '✖';
+            if (this.errorSpan) this.errorSpan.textContent = '❌ load failed';
+        }
     }
     
-    const tracks = [
+    // TRACKS WITH CLEAN NAMES
+    const playlistTracks = [
         { name: "bjork - play dead", url: "https://song.muzvibe.org/download/3332b73437363733b2883731353332b63436b40000/8ea4ed227d31af7bbefa9a4dd981a6bc/Bj%C3%B6rk%20-%20The%20Best%20Of%20Bj%C3%B6rk%20%5B2014%5D%20-%2005.%20Bj%C3%B6rk%20%26%20David%20Arnold%20-%20Play%20Dead.mp3" },
         { name: "bjork - bachelorette", url: "https://song.muzvibe.org/play/33313731b1b43432308b3731353333353337360700/bab081ddc8870c1f2d81c67dca2ba3d2/Bj%C3%B6rk%20-%20Bachelorette.mp3" },
         { name: "show me the body, princess nokia - spit", url: "https://song.muzvibe.org/play/3336373437313531338f3731353335343632300700/0eb43c37b5ea118413c304349dd1e239/Show%20Me%20The%20Body%2C%20Princess%20Nokia%20-%20Spit.mp3" },
@@ -565,58 +667,108 @@
         { name: "the neighbourhood - wires", url: "https://song.muzvibe.org/play/3336373437313531368e3731353332b63436340700/cb333571817f5cf6aad99cb0bb634cd3/The%20Neighbourhood%20-%20Wires.mp3" }
     ];
     
+    const players = [];
+    
     function renderPlaylist() {
-        const container = document.getElementById('playlistList');
-        if (!container) return;
-        container.innerHTML = '';
-        tracks.forEach(t => {
-            const div = document.createElement('div');
-            div.className = 'playlist-item';
-            div.innerHTML = `<div class="track-name">${escapeHtml(t.name)}</div>
-                <div class="custom-audio">
-                    <button class="play-pause-btn">▶</button>
-                    <input type="range" class="seek-bar" value="0" step="0.01">
-                    <span class="time-display">0:00 / 0:00</span>
-                    <input type="range" class="volume-bar" value="0.7" step="0.01" min="0" max="1">
-                    <span class="error-badge"></span>
-                </div>`;
-            container.appendChild(div);
+        const playlistList = document.getElementById('playlistList');
+        if (!playlistList) return;
+        playlistList.innerHTML = '';
+        
+        playlistTracks.forEach((track, idx) => {
+            const item = document.createElement('div');
+            item.className = 'playlist-item';
+            
+            const trackNameSpan = document.createElement('div');
+            trackNameSpan.className = 'track-name';
+            trackNameSpan.textContent = track.name;
+            item.appendChild(trackNameSpan);
+            
+            const controlsDiv = document.createElement('div');
+            controlsDiv.className = 'custom-audio';
+            
+            const playPauseBtn = document.createElement('button');
+            playPauseBtn.className = 'play-pause-btn';
+            playPauseBtn.textContent = '▶';
+            
+            const seekBar = document.createElement('input');
+            seekBar.type = 'range';
+            seekBar.className = 'seek-bar';
+            seekBar.value = 0;
+            seekBar.step = 0.01;
+            
+            const timeDisplay = document.createElement('span');
+            timeDisplay.className = 'time-display';
+            timeDisplay.textContent = '0:00 / 0:00';
+            
+            const volumeBar = document.createElement('input');
+            volumeBar.type = 'range';
+            volumeBar.className = 'volume-bar';
+            volumeBar.value = 0.7;
+            volumeBar.step = 0.01;
+            volumeBar.min = 0;
+            volumeBar.max = 1;
+            
+            const errorSpan = document.createElement('span');
+            errorSpan.className = 'error-badge';
+            errorSpan.textContent = '';
+            
+            controlsDiv.appendChild(playPauseBtn);
+            controlsDiv.appendChild(seekBar);
+            controlsDiv.appendChild(timeDisplay);
+            controlsDiv.appendChild(volumeBar);
+            controlsDiv.appendChild(errorSpan);
+            
+            item.appendChild(controlsDiv);
+            playlistList.appendChild(item);
+            
+            // Create audio element
             const audio = new Audio();
-            audio.src = t.url;
+            audio.src = track.url;
             audio.preload = 'metadata';
-            new SimpleAudioPlayer(audio, div.querySelector('.play-pause-btn'), div.querySelector('.time-display'), div.querySelector('.seek-bar'), div.querySelector('.volume-bar'), div.querySelector('.error-badge'));
+            audio.crossOrigin = 'anonymous';
+            
+            const player = new SimpleAudioPlayer(audio, playPauseBtn, timeDisplay, seekBar, volumeBar, errorSpan);
+            players.push(player);
         });
     }
     
-    function escapeHtml(s) { return s.replace(/[&<>]/g, function(m) { return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'; }); }
+    function addTrack(name, url) {
+        playlistTracks.push({ name, url });
+        renderPlaylist();
+        console.log(`✓ Added track: ${name}`);
+    }
     
-    function applyCursive(element) {
+    window.addTrack = addTrack;
+    
+    // ---------- CURSIVE FORMATTING ----------
+    function applyCursiveFormatting(element) {
         if (!element) return;
-        const regex = /\*(.*?)\*/g;
-        const walk = (node) => {
-            if (node.nodeType === 3) {
+        function processNode(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
                 const text = node.textContent;
+                const regex = /\*(.*?)\*/g;
                 if (regex.test(text)) {
                     const parts = [];
-                    let last = 0, match;
+                    let lastIndex = 0;
+                    let match;
                     regex.lastIndex = 0;
                     while ((match = regex.exec(text)) !== null) {
-                        if (match.index > last) parts.push(document.createTextNode(text.substring(last, match.index)));
+                        if (match.index > lastIndex) parts.push(document.createTextNode(text.substring(lastIndex, match.index)));
                         const em = document.createElement('em');
                         em.textContent = match[1];
                         parts.push(em);
-                        last = match.index + match[0].length;
+                        lastIndex = match.index + match[0].length;
                     }
-                    if (last < text.length) parts.push(document.createTextNode(text.substring(last)));
-                    const frag = document.createDocumentFragment();
-                    parts.forEach(p => frag.appendChild(p));
-                    node.parentNode.replaceChild(frag, node);
+                    if (lastIndex < text.length) parts.push(document.createTextNode(text.substring(lastIndex)));
+                    const fragment = document.createDocumentFragment();
+                    parts.forEach(part => fragment.appendChild(part));
+                    node.parentNode.replaceChild(fragment, node);
                 }
-            } else if (node.nodeType === 1 && node.tagName !== 'EM') {
-                Array.from(node.childNodes).forEach(walk);
+            } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName !== 'EM' && node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE') {
+                Array.from(node.childNodes).forEach(child => processNode(child));
             }
-        };
-        walk(element);
+        }
+        processNode(element);
     }
     
     const TOTAL = 95;
@@ -2047,99 +2199,164 @@ pagesData[94] = {
 <p>Back to the question... "I could use your help, actually," he says to Sebastian while scooping the ice cream – something he's been craving. "Some young blood. A lad, he's a sniper, just like you. Didn't have time to get anyone appointed to do the recruiting, so why won't you go have a look? Test him as you please and then tell me what you think."</p>
 <p>While saying this, he checks the CCTV live snapshots to see the frozen image of Mycroft Holmes heading to the Baker Street. Of course, the Lord Mayor went to him first, and now he's going to convince Sherlock to take this case. JM decides he's gonna spend some time in his room, tracking their progress; thinking.</p>`
 };
-    
-   const storyDiv = document.getElementById('storySection');
-    storyDiv.innerHTML = '';
+} 
+
+    const storySection = document.getElementById('storySection');
+    storySection.innerHTML = '';
     const jmIcon = 'https://aibel.ru/media/chars/ava/img20260421112322_56517366.gif';
     const smIcon = 'https://aibel.ru/media/chars/ava/img20260421133157_32736372.gif';
     const pageElements = [];
-    
-    for (let i = 0; i < pages.length; i++) {
-        const p = pages[i];
-        const isJM = p.author === "JM";
-        const el = document.createElement('div');
-        el.className = 'story-page';
-        if (i !== 0) el.style.display = 'none';
-        el.innerHTML = `<div class="icon-user-row"><img src="${isJM ? jmIcon : smIcon}"><span class="username">${p.author}</span></div>
-            <div class="story-text ${isJM ? '' : 'sm-style'}" id="storyText${i+1}">${p.text}</div>
-            <div class="page-number">page ${i+1} of ${TOTAL}</div>
-            <div class="nav-arrow">${i > 0 ? '<button class="arrow-btn">←</button>' : ''}${i < TOTAL - 1 ? '<button class="arrow-btn">→</button>' : ''}</div>`;
-        storyDiv.appendChild(el);
-        pageElements.push(el);
-        applyCursive(document.getElementById(`storyText${i+1}`));
-        if (i > 0) el.querySelector('.nav-arrow .arrow-btn:first-child')?.addEventListener('click', () => goTo(i - 1));
-        if (i < TOTAL - 1) el.querySelector('.nav-arrow .arrow-btn:last-child')?.addEventListener('click', () => goTo(i + 1));
+
+    for (let i = 0; i < pagesData.length; i++) {
+        const page = pagesData[i];
+        const isJM = page.author === "JM";
+        const icon = isJM ? jmIcon : smIcon;
+        const smClass = isJM ? "" : "sm-style";
+        
+        const pageDiv = document.createElement('div');
+        pageDiv.id = `page${i+1}`;
+        pageDiv.className = 'story-page';
+        if (i !== 0) pageDiv.style.display = 'none';
+        
+        const iconRow = document.createElement('div');
+        iconRow.className = 'icon-user-row';
+        iconRow.innerHTML = `<img src="${icon}" alt="${page.author} icon"><span class="username">${page.author}</span>`;
+        pageDiv.appendChild(iconRow);
+        
+        const textDiv = document.createElement('div');
+        textDiv.id = `storyText${i+1}`;
+        textDiv.className = `story-text ${smClass}`;
+        textDiv.innerHTML = page.text;
+        pageDiv.appendChild(textDiv);
+        
+        const pageNumberDiv = document.createElement('div');
+        pageNumberDiv.className = 'page-number';
+        pageNumberDiv.textContent = `page ${i+1} of ${TOTAL_PAGES}`;
+        pageDiv.appendChild(pageNumberDiv);
+        
+        const navDiv = document.createElement('div');
+        navDiv.className = 'nav-arrow';
+        if (i > 0) {
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'arrow-btn';
+            prevBtn.textContent = '←';
+            prevBtn.addEventListener('click', () => showPage(i - 1));
+            navDiv.appendChild(prevBtn);
+        }
+        if (i < pagesData.length - 1) {
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'arrow-btn';
+            nextBtn.textContent = '→';
+            nextBtn.addEventListener('click', () => showPage(i + 1));
+            navDiv.appendChild(nextBtn);
+        }
+        pageDiv.appendChild(navDiv);
+        storySection.appendChild(pageDiv);
+        pageElements.push(pageDiv);
+        applyCursiveFormatting(textDiv);
     }
     
-    const reset = document.createElement('button');
-    reset.id = 'resetBtn';
-    reset.className = 'reset-button';
-    reset.textContent = '[ lock screen ]';
-    storyDiv.appendChild(reset);
+    const resetBtn = document.createElement('button');
+    resetBtn.id = 'resetBtn';
+    resetBtn.className = 'reset-button';
+    resetBtn.textContent = '[ lock screen ]';
+    storySection.appendChild(resetBtn);
     
-    let current = 0;
-    function goTo(idx) {
-        if (idx < 0) idx = 0;
-        if (idx >= pageElements.length) idx = pageElements.length - 1;
-        pageElements.forEach(p => p.style.display = 'none');
-        pageElements[idx].style.display = 'block';
-        current = idx;
+    let currentPageIndex = 0;
+    function showPage(index) {
+        if (index < 0) index = 0;
+        if (index >= pageElements.length) index = pageElements.length - 1;
+        for (let i = 0; i < pageElements.length; i++) {
+            pageElements[i].style.display = 'none';
+        }
+        pageElements[index].style.display = 'block';
+        currentPageIndex = index;
     }
     
     window.addEventListener('keydown', (e) => {
-        if (storyDiv.style.display === 'flex') {
-            if (e.key === 'ArrowLeft') { e.preventDefault(); if (current > 0) goTo(current - 1); }
-            if (e.key === 'ArrowRight') { e.preventDefault(); if (current < TOTAL - 1) goTo(current + 1); }
+        if (storySection.style.display === 'flex') {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (currentPageIndex > 0) showPage(currentPageIndex - 1);
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                if (currentPageIndex < pageElements.length - 1) showPage(currentPageIndex + 1);
+            }
         }
     });
     
-    document.querySelectorAll('#tocList a').forEach(link => {
+    const tocLinks = document.querySelectorAll('#tocList a');
+    tocLinks.forEach(link => {
         link.addEventListener('click', () => {
-            const target = parseInt(link.dataset.page);
-            if (!isNaN(target) && storyDiv.style.display === 'flex') goTo(target);
+            const targetPage = parseInt(link.getAttribute('data-page'), 10);
+            if (!isNaN(targetPage) && targetPage >= 0 && targetPage < pageElements.length) {
+                if (storySection.style.display === 'flex') showPage(targetPage);
+            }
         });
     });
     
-    // Simple password check - works everywhere
-    const gate = document.getElementById('gateSection');
-    const pwdInput = document.getElementById('passwordInput');
-    const submit = document.getElementById('submitBtn');
-    const err = document.getElementById('errorMsg');
-    const storyContainer = document.getElementById('storySection');
-    const toc = document.getElementById('tocContainer');
-    const playlist = document.getElementById('playlistContainer');
+    const CORRECT_PASSWORD = "stayalive";
+    const gateSection = document.getElementById('gateSection');
+    const passwordInput = document.getElementById('passwordInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const errorMsgDiv = document.getElementById('errorMsg');
+    const storySectionElem = document.getElementById('storySection');
+    const tocContainer = document.getElementById('tocContainer');
+    const playlistBox = document.getElementById('playlistContainer');
     
-    function unlock() {
-        if (pwdInput.value === CORRECT_PASSWORD) {
-            gate.style.display = 'none';
-            storyContainer.style.display = 'flex';
-            if (toc) toc.classList.add('visible');
-            if (playlist) playlist.classList.add('visible');
-            goTo(0);
-            err.style.display = 'none';
+    function unlockContent() {
+        gateSection.style.display = 'none';
+        storySectionElem.style.display = 'flex';
+        if (tocContainer) tocContainer.classList.add('visible');
+        if (playlistBox) playlistBox.classList.add('visible');
+        showPage(0);
+        if (errorMsgDiv) errorMsgDiv.style.display = 'none';
+    }
+    
+    function lockContent() {
+        gateSection.style.display = 'flex';
+        storySectionElem.style.display = 'none';
+        if (tocContainer) tocContainer.classList.remove('visible');
+        if (playlistBox) playlistBox.classList.remove('visible');
+        if (passwordInput) {
+            passwordInput.value = '';
+            passwordInput.focus();
+        }
+        if (errorMsgDiv) errorMsgDiv.style.display = 'none';
+        showPage(0);
+    }
+    
+    function handlePasswordSubmit() {
+        if (passwordInput.value === CORRECT_PASSWORD) {
+            unlockContent();
         } else {
-            err.style.display = 'block';
-            setTimeout(() => err.style.display = 'none', 2000);
-            pwdInput.value = '';
-            pwdInput.focus();
+            errorMsgDiv.style.display = 'block';
+            errorMsgDiv.innerText = '[ access denied ]';
+            setTimeout(() => {
+                if (errorMsgDiv && gateSection.style.display !== 'none') errorMsgDiv.style.display = 'none';
+            }, 2000);
+            passwordInput.value = '';
+            passwordInput.focus();
         }
     }
     
-    function lockAll() {
-        gate.style.display = 'flex';
-        storyContainer.style.display = 'none';
-        if (toc) toc.classList.remove('visible');
-        if (playlist) playlist.classList.remove('visible');
-        pwdInput.value = '';
-        pwdInput.focus();
-        goTo(0);
-    }
+    submitBtn.addEventListener('click', handlePasswordSubmit);
+    passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); handlePasswordSubmit(); }
+    });
+    const globalReset = document.getElementById('resetBtn');
+    if (globalReset) globalReset.addEventListener('click', lockContent);
     
-    submit.onclick = unlock;
-    pwdInput.onkeypress = (e) => { if (e.key === 'Enter') unlock(); };
-    document.getElementById('resetBtn').onclick = lockAll;
+    window.addEventListener('DOMContentLoaded', () => {
+        lockContent();
+        renderPlaylist();
+    });
     
-    window.addEventListener('DOMContentLoaded', () => { lockAll(); renderPlaylist(); });
+    window.pagesData = pagesData;
+    window.showPage = showPage;
+    window.addTrack = addTrack;
+    
+    console.log('✓ Access denied message now has no bold left border');
 </script>
 </body>
 </html>
