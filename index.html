@@ -770,11 +770,13 @@
         }
         processNode(element);
     }
-    
-    const TOTAL = 95;
-    const pages = [];
-   
-    pagesData[0] = {
+
+    // ---------- STORY PAGES (95 PLACEHOLDERS) ----------
+   const TOTAL_PAGES = 95;
+const pagesData = [];
+
+// PAGE 1 (JM)
+pagesData[0] = {
     author: "JM",
     text: `<p>Two years, and you could move on, start a family, try to live a normal life. But you didn't. How come?</p>
 <p>You're convinced the war broke you beyond repair. Even in your mind you still can't face that it was love beyond anything else that kept you waiting. To admit that you loved James Moriarty, the little bitch he was, would be crushing.</p>
@@ -785,6 +787,7 @@
 <p>Sooo what are you gonna do Tiger?</p>`
 };
 
+// PAGE 2 (SM)
 pagesData[1] = {
     author: "SM",
     text: `<p>It is absolutely possible to change the entire life in a couple of years. Even if your souls seems to be lost or at least broken as hell, even if your past is haunting you, and even of you think you’re a gone case. There’s just one little thing really necessary for that, and that thing is called *a desire*. An utmost, true desire to change, to get a new life, or just to get a life.</p>
@@ -802,6 +805,7 @@ He knows it’s the dead man.</p>
 Of course it’s absolutely not becase the throat is suddenly dry and like out of air; it’s not like his hands could shake when holding a gun, but something inside can shake. Or maybe it’s the bloody world shaking, who knows.</p>`
 };
 
+// PAGE 3 (JM)
 pagesData[2] = {
     author: "JM",
     text: `<p>It's an early morning and the block seems impossibly quiet. There's an endless silence on the line before a familiar, soft-spoken voice starts murmuring:</p>
@@ -2199,7 +2203,7 @@ pagesData[94] = {
 <p>Back to the question... "I could use your help, actually," he says to Sebastian while scooping the ice cream – something he's been craving. "Some young blood. A lad, he's a sniper, just like you. Didn't have time to get anyone appointed to do the recruiting, so why won't you go have a look? Test him as you please and then tell me what you think."</p>
 <p>While saying this, he checks the CCTV live snapshots to see the frozen image of Mycroft Holmes heading to the Baker Street. Of course, the Lord Mayor went to him first, and now he's going to convince Sherlock to take this case. JM decides he's gonna spend some time in his room, tracking their progress; thinking.</p>`
 };
-} 
+    
 
     const storySection = document.getElementById('storySection');
     storySection.innerHTML = '';
