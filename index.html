@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>if you forget my name, you will go astray, like a killer whale trapped in a bay</title>
     <style>
-        /* RESET — pure black, square corners, book-like serif */
         * {
             margin: 0;
             padding: 0;
@@ -147,18 +146,6 @@
             overflow-y: auto;
         }
 
-        .playlist-container::-webkit-scrollbar {
-            width: 6px;
-            background-color: #0a0a0a;
-        }
-        .playlist-container::-webkit-scrollbar-track {
-            background: #0a0a0a;
-        }
-        .playlist-container::-webkit-scrollbar-thumb {
-            background: #2c2c2c;
-            border-radius: 0px;
-        }
-
         .playlist-item {
             font-family: 'Courier New', monospace;
             font-size: 0.7rem;
@@ -250,28 +237,6 @@
 
         .seek-bar::-webkit-slider-thumb:hover, .volume-bar::-webkit-slider-thumb:hover {
             background: #ffffff;
-        }
-
-        .seek-bar::-webkit-slider-runnable-track, .volume-bar::-webkit-slider-runnable-track {
-            height: 2px;
-            background: #3a3a3a;
-            border: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .seek-bar::-moz-range-thumb, .volume-bar::-moz-range-thumb {
-            width: 8px;
-            height: 8px;
-            background: #aaaaaa;
-            cursor: pointer;
-            border: none;
-            border-radius: 0px;
-        }
-
-        .seek-bar::-moz-range-track, .volume-bar::-moz-range-track {
-            height: 2px;
-            background: #3a3a3a;
         }
 
         .error-badge {
@@ -482,32 +447,18 @@
         }
 
         @media (max-width: 800px) {
-            .main-layout {
-                flex-direction: column;
-            }
-            .sidebar {
-                width: 100%;
-                position: static;
-                max-height: none;
-            }
-            body {
-                padding: 1rem;
-            }
-            .content-panel {
-                padding: 1.2rem;
-            }
-            .seek-bar {
-                width: 60px;
-            }
-            .volume-bar {
-                width: 30px;
-            }
+            .main-layout { flex-direction: column; }
+            .sidebar { width: 100%; position: static; max-height: none; }
+            body { padding: 1rem; }
+            .content-panel { padding: 1.2rem; }
+            .seek-bar { width: 60px; }
+            .volume-bar { width: 30px; }
         }
     </style>
 </head>
 <body>
 <div class="main-layout">
-    <div class="sidebar" id="sidebar">
+    <div class="sidebar">
         <div class="toc" id="tocContainer">
             <h3>contents</h3>
             <ul id="tocList">
@@ -525,7 +476,6 @@
                 <li><a class="chapter-link" data-page="90">Chapter 6: MORIARTY WAS REAL</a></li>
             </ul>
         </div>
-
         <div class="playlist-box" id="playlistContainer">
             <h3>playlist</h3>
             <div class="playlist-container" id="playlistList"></div>
@@ -550,6 +500,9 @@
 </div>
 
 <script>
+    
+    const CORRECT_HASH = "bc1d7b2f5a1c8e9d3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8";
+    
     async function hashPassword(password) {
         const encoder = new TextEncoder();
         const data = encoder.encode(password);
@@ -558,16 +511,11 @@
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
     
-    const CORRECT_HASH = "ee26b0dd4af7e749aa1a8ee3c10ae9923f618980772e473f8819a5d4940e0db27";
-    
-    // ============================================================
-    // CUSTOM AUDIO PLAYER
-    // ============================================================
-    
+    // Simple Audio Player
     class SimpleAudioPlayer {
-        constructor(audioElement, playPauseBtn, timeDisplay, seekBar, volumeBar, errorSpan) {
-            this.audio = audioElement;
-            this.playPauseBtn = playPauseBtn;
+        constructor(audio, playBtn, timeDisplay, seekBar, volumeBar, errorSpan) {
+            this.audio = audio;
+            this.playBtn = playBtn;
             this.timeDisplay = timeDisplay;
             this.seekBar = seekBar;
             this.volumeBar = volumeBar;
@@ -575,80 +523,45 @@
             this.isPlaying = false;
             this.init();
         }
-        
         init() {
-            this.playPauseBtn.addEventListener('click', () => this.togglePlay());
-            this.seekBar.addEventListener('input', (e) => this.seek(e.target.value));
-            this.volumeBar.addEventListener('input', (e) => this.setVolume(e.target.value));
-            this.audio.addEventListener('timeupdate', () => this.updateProgress());
-            this.audio.addEventListener('ended', () => this.onEnded());
-            this.audio.addEventListener('loadedmetadata', () => this.updateDuration());
-            this.audio.addEventListener('canplay', () => this.onCanPlay());
-            this.audio.addEventListener('error', (e) => this.onError(e));
+            this.playBtn.onclick = () => this.toggle();
+            this.seekBar.oninput = (e) => this.audio.currentTime = parseFloat(e.target.value);
+            this.volumeBar.oninput = (e) => this.audio.volume = parseFloat(e.target.value);
+            this.audio.ontimeupdate = () => this.update();
+            this.audio.onloadedmetadata = () => this.updateDuration();
+            this.audio.onended = () => { this.playBtn.textContent = '▶'; this.isPlaying = false; };
             this.audio.volume = 0.7;
             this.volumeBar.value = 0.7;
         }
-        
-        togglePlay() {
+        toggle() {
             if (this.isPlaying) {
                 this.audio.pause();
-                this.playPauseBtn.textContent = '▶';
+                this.playBtn.textContent = '▶';
                 this.isPlaying = false;
             } else {
-                const playPromise = this.audio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        this.playPauseBtn.textContent = '⏸';
-                        this.isPlaying = true;
-                        if (this.errorSpan) this.errorSpan.textContent = '';
-                    }).catch(error => {
-                        console.warn('Playback error:', error);
-                        this.playPauseBtn.textContent = '▶';
-                        this.isPlaying = false;
-                        if (this.errorSpan) this.errorSpan.textContent = '⚠ cannot play';
-                    });
-                }
+                this.audio.play().then(() => {
+                    this.playBtn.textContent = '⏸';
+                    this.isPlaying = true;
+                }).catch(() => { if(this.errorSpan) this.errorSpan.textContent = '⚠'; });
             }
         }
-        
-        seek(value) { this.audio.currentTime = parseFloat(value); }
-        setVolume(value) { this.audio.volume = parseFloat(value); }
-        
-        updateProgress() {
-            if (this.audio.duration && !isNaN(this.audio.duration)) {
+        update() {
+            if (this.audio.duration) {
                 this.seekBar.value = this.audio.currentTime;
                 this.seekBar.max = this.audio.duration;
-                this.updateTimeDisplay();
+                this.timeDisplay.textContent = `${this.format(this.audio.currentTime)} / ${this.format(this.audio.duration)}`;
             }
         }
-        
         updateDuration() {
-            if (this.audio.duration && !isNaN(this.audio.duration)) {
+            if (this.audio.duration) {
                 this.seekBar.max = this.audio.duration;
-                this.updateTimeDisplay();
+                this.timeDisplay.textContent = `${this.format(this.audio.currentTime)} / ${this.format(this.audio.duration)}`;
             }
         }
-        
-        updateTimeDisplay() {
-            const current = this.formatTime(this.audio.currentTime);
-            const duration = this.formatTime(this.audio.duration);
-            this.timeDisplay.textContent = `${current} / ${duration}`;
-        }
-        
-        formatTime(seconds) {
-            if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-        
-        onEnded() { this.playPauseBtn.textContent = '▶'; this.isPlaying = false; }
-        onCanPlay() { if (this.errorSpan) this.errorSpan.textContent = ''; }
-        onError(e) { console.warn('Audio error:', e); this.playPauseBtn.textContent = '✖'; if (this.errorSpan) this.errorSpan.textContent = '❌ load failed'; }
+        format(t) { if (isNaN(t)) return '0:00'; const m = Math.floor(t/60); const s = Math.floor(t%60); return `${m}:${s.toString().padStart(2,'0')}`; }
     }
     
-    // TRACKS
-    const playlistTracks = [
+    const tracks = [
         { name: "bjork - play dead", url: "https://song.muzvibe.org/download/3332b73437363733b2883731353332b63436b40000/8ea4ed227d31af7bbefa9a4dd981a6bc/Bj%C3%B6rk%20-%20The%20Best%20Of%20Bj%C3%B6rk%20%5B2014%5D%20-%2005.%20Bj%C3%B6rk%20%26%20David%20Arnold%20-%20Play%20Dead.mp3" },
         { name: "bjork - bachelorette", url: "https://song.muzvibe.org/play/33313731b1b43432308b3731353333353337360700/bab081ddc8870c1f2d81c67dca2ba3d2/Bj%C3%B6rk%20-%20Bachelorette.mp3" },
         { name: "show me the body, princess nokia - spit", url: "https://song.muzvibe.org/play/3336373437313531338f3731353335343632300700/0eb43c37b5ea118413c304349dd1e239/Show%20Me%20The%20Body%2C%20Princess%20Nokia%20-%20Spit.mp3" },
@@ -656,70 +569,65 @@
         { name: "the neighbourhood - wires", url: "https://song.muzvibe.org/play/3336373437313531368e3731353332b63436340700/cb333571817f5cf6aad99cb0bb634cd3/The%20Neighbourhood%20-%20Wires.mp3" }
     ];
     
-    const players = [];
-    
     function renderPlaylist() {
-        const playlistList = document.getElementById('playlistList');
-        if (!playlistList) return;
-        playlistList.innerHTML = '';
-        playlistTracks.forEach((track) => {
-            const item = document.createElement('div');
-            item.className = 'playlist-item';
-            item.innerHTML = `<div class="track-name">${escapeHtml(track.name)}</div><div class="custom-audio"><button class="play-pause-btn">▶</button><input type="range" class="seek-bar" value="0" step="0.01"><span class="time-display">0:00 / 0:00</span><input type="range" class="volume-bar" value="0.7" step="0.01" min="0" max="1"><span class="error-badge"></span></div>`;
-            playlistList.appendChild(item);
+        const container = document.getElementById('playlistList');
+        if (!container) return;
+        container.innerHTML = '';
+        tracks.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'playlist-item';
+            div.innerHTML = `<div class="track-name">${escapeHtml(t.name)}</div>
+                <div class="custom-audio">
+                    <button class="play-pause-btn">▶</button>
+                    <input type="range" class="seek-bar" value="0" step="0.01">
+                    <span class="time-display">0:00 / 0:00</span>
+                    <input type="range" class="volume-bar" value="0.7" step="0.01" min="0" max="1">
+                    <span class="error-badge"></span>
+                </div>`;
+            container.appendChild(div);
             const audio = new Audio();
-            audio.src = track.url;
+            audio.src = t.url;
             audio.preload = 'metadata';
-            audio.crossOrigin = 'anonymous';
-            const playPauseBtn = item.querySelector('.play-pause-btn');
-            const seekBar = item.querySelector('.seek-bar');
-            const timeDisplay = item.querySelector('.time-display');
-            const volumeBar = item.querySelector('.volume-bar');
-            const errorSpan = item.querySelector('.error-badge');
-            const player = new SimpleAudioPlayer(audio, playPauseBtn, timeDisplay, seekBar, volumeBar, errorSpan);
-            players.push(player);
+            new SimpleAudioPlayer(audio, div.querySelector('.play-pause-btn'), div.querySelector('.time-display'), div.querySelector('.seek-bar'), div.querySelector('.volume-bar'), div.querySelector('.error-badge'));
         });
     }
     
-    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
-    window.addTrack = function(name, url) { playlistTracks.push({ name, url }); renderPlaylist(); console.log(`✓ Added track: ${name}`); };
+    function escapeHtml(s) { return s.replace(/[&<>]/g, function(m) { return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'; }); }
     
-    // ---------- CURSIVE FORMATTING ----------
-    function applyCursiveFormatting(element) {
+    function applyCursive(element) {
         if (!element) return;
-        function processNode(node) {
-            if (node.nodeType === Node.TEXT_NODE) {
+        const regex = /\*(.*?)\*/g;
+        const walk = (node) => {
+            if (node.nodeType === 3) {
                 const text = node.textContent;
-                const regex = /\*(.*?)\*/g;
                 if (regex.test(text)) {
                     const parts = [];
-                    let lastIndex = 0, match;
+                    let last = 0, match;
                     regex.lastIndex = 0;
                     while ((match = regex.exec(text)) !== null) {
-                        if (match.index > lastIndex) parts.push(document.createTextNode(text.substring(lastIndex, match.index)));
+                        if (match.index > last) parts.push(document.createTextNode(text.substring(last, match.index)));
                         const em = document.createElement('em');
                         em.textContent = match[1];
                         parts.push(em);
-                        lastIndex = match.index + match[0].length;
+                        last = match.index + match[0].length;
                     }
-                    if (lastIndex < text.length) parts.push(document.createTextNode(text.substring(lastIndex)));
-                    const fragment = document.createDocumentFragment();
-                    parts.forEach(part => fragment.appendChild(part));
-                    node.parentNode.replaceChild(fragment, node);
+                    if (last < text.length) parts.push(document.createTextNode(text.substring(last)));
+                    const frag = document.createDocumentFragment();
+                    parts.forEach(p => frag.appendChild(p));
+                    node.parentNode.replaceChild(frag, node);
                 }
-            } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName !== 'EM' && node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE') {
-                Array.from(node.childNodes).forEach(child => processNode(child));
+            } else if (node.nodeType === 1 && node.tagName !== 'EM') {
+                Array.from(node.childNodes).forEach(walk);
             }
-        }
-        processNode(element);
+        };
+        walk(element);
     }
-
-    // ---------- STORY PAGES (95 PLACEHOLDERS) ----------
- const TOTAL_PAGES = 95;
-const pagesData = [];
-
-// PAGE 1 (JM)
-pagesData[0] = {
+    
+    // Generate 95 pages
+    const TOTAL = 95;
+    const pages = [];
+   
+    pagesData[0] = {
     author: "JM",
     text: `<p>Two years, and you could move on, start a family, try to live a normal life. But you didn't. How come?</p>
 <p>You're convinced the war broke you beyond repair. Even in your mind you still can't face that it was love beyond anything else that kept you waiting. To admit that you loved James Moriarty, the little bitch he was, would be crushing.</p>
@@ -730,7 +638,6 @@ pagesData[0] = {
 <p>Sooo what are you gonna do Tiger?</p>`
 };
 
-// PAGE 2 (SM)
 pagesData[1] = {
     author: "SM",
     text: `<p>It is absolutely possible to change the entire life in a couple of years. Even if your souls seems to be lost or at least broken as hell, even if your past is haunting you, and even of you think you’re a gone case. There’s just one little thing really necessary for that, and that thing is called *a desire*. An utmost, true desire to change, to get a new life, or just to get a life.</p>
@@ -748,7 +655,6 @@ He knows it’s the dead man.</p>
 Of course it’s absolutely not becase the throat is suddenly dry and like out of air; it’s not like his hands could shake when holding a gun, but something inside can shake. Or maybe it’s the bloody world shaking, who knows.</p>`
 };
 
-// PAGE 3 (JM)
 pagesData[2] = {
     author: "JM",
     text: `<p>It's an early morning and the block seems impossibly quiet. There's an endless silence on the line before a familiar, soft-spoken voice starts murmuring:</p>
@@ -841,26 +747,16 @@ The devil stares back, taking his shades off, and that’s the very rapier glanc
 
 pagesData[8] = {
     author: "JM",
-    text: `<p>Sebastian Moran belongs to that tiny group of people, who, in the whole world, can recognize James Moriarty by his movement as a physical being, and not just an urban legend; some abstract, creative force on the global arena. And he's aware.
-
-A good sniper is a good tactician, always choosing a vantage point with the best view of the terrain and his target. Sebastian Moran managed to capture the top of this hill; observe James Moriarty not only from the distance of his telescopic sight, but from the distance of a stretched arm, and closer even. He used to be by his side quite literally, close enough to study the curve of his nose and the length of his lashes. 
-
-In the system of total anonymity this can make him a friend or a foe, depending on how JM feels about it. Surely, this fact adds to the level of possible sentimentality between them, though it's not like JM decided to reach for Moran out of pure sentiment. 
-
-
-"What happened to Hello?" he exclaims teasingly, as if he was the one to say it very often. "Hi, boss, you look wonderful and not dead in the slightest? ... By the way, how are you so sure I went to Hell and not to Heaven?" 
-
-He doesn't wait for a reply, falling on his habit of taking the lead in conversation. 
-
-"It's so fucking tedious, being dead, y'know. It stinks, everything itches, brrr, I figured I just couldn't take it anymore." 
-
-The tip of his shoe bumped against Moran's boot, because the table was so small, hardly leaving them space to maneuver without some accidental – or intentional – touching. 
-
-Maybe Moran's positioning in the corner is not working for his advantage after all 'cause now he's trapped into the corner by JM. 
-
-"Besides... Our friend, Sherlock, is back. Haven't you heard?" 
-
-While sipping at his coffee, he eyes Moran once again with great attention. Time to get jealous, he thinks, 'cause it's always about Sherlock. It was about Sherlock two years ago when he decided to blow his own brains out just to outplay that smart-ass detective.</p>`
+    text: `<p>Sebastian Moran belongs to that tiny group of people, who, in the whole world, can recognize James Moriarty by his movement as a physical being, and not just an urban legend; some abstract, creative force on the global arena. And he's aware.</p>
+<p>A good sniper is a good tactician, always choosing a vantage point with the best view of the terrain and his target. Sebastian Moran managed to capture the top of this hill; observe James Moriarty not only from the distance of his telescopic sight, but from the distance of a stretched arm, and closer even. He used to be by his side quite literally, close enough to study the curve of his nose and the length of his lashes.</p>
+<p>In the system of total anonymity this can make him a friend or a foe, depending on how JM feels about it. Surely, this fact adds to the level of possible sentimentality between them, though it's not like JM decided to reach for Moran out of pure sentiment.</p>
+<p>"What happened to Hello?" he exclaims teasingly, as if he was the one to say it very often. "Hi, boss, you look wonderful and not dead in the slightest? ... By the way, how are you so sure I went to Hell and not to Heaven?"</p>
+<p>He doesn't wait for a reply, falling on his habit of taking the lead in conversation.</p>
+<p>"It's so fucking tedious, being dead, y'know. It stinks, everything itches, brrr, I figured I just couldn't take it anymore."</p>
+<p>The tip of his shoe bumped against Moran's boot, because the table was so small, hardly leaving them space to maneuver without some accidental – or intentional – touching.</p>
+<p>Maybe Moran's positioning in the corner is not working for his advantage after all 'cause now he's trapped into the corner by JM.</p>
+<p>"Besides... Our friend, Sherlock, is back. Haven't you heard?"</p>
+<p>While sipping at his coffee, he eyes Moran once again with great attention. Time to get jealous, he thinks, 'cause it's always about Sherlock. It was about Sherlock two years ago when he decided to blow his own brains out just to outplay that smart-ass detective.</p>`
 };
 
 pagesData[9] = {
@@ -895,22 +791,17 @@ pagesData[10] = {
 
 pagesData[11] = {
     author: "SM",
-    text: `<p>For the whole life Moran was taught to keep calm in any situation. Whatever happens, keep your head, never let emotions take over, cage the rage, be armed with patience. Well, a big advantage, if you think of it, and also a necessary skill for a good sniper.
-Yet right now he feels like all the years of such experience can vanish in a blink of an eye. Looking straight in dark eyes, as if trying to read something between the lines, Moran feels an unbearable tension in his hands.
-
-And actually, yes, he asked the question and got the answer, and it's so fucking routine when JM is absolutely right with a grain of salt and his well-played fake smile.
-
-It takes effort not to move and keep sight line when Moriarty leans closer. It takes bigger effort to stay visibly calm while listening to that velvet, cushioned voice.
-Yet when Moran feels that very slight touch, something inside cracks and breaks.
-
-"What is that I want?" he asks, his voice still calm and cold. Absolutely not reflecting a bitter flame rising inside, like bile fluttering in his throat. "Shouldn't you've been asking that two bloody years ago, huh? Or wait... you never ever should do something, right?"
-The same bitterness is almost material in his voice. And it's like a timer ticking down to zero.
-
-Two years later Moran is still same hard as nails, and his reaction is quick enough that JM can't block a movement of his arm. Slender but strong fingers seize JM by the collar at a flash, a motion so smooth that both cups on the table don't spill a drop.
-"You fucking selfish moron," Sebastian hisses, feeling he's getting short of breath, "playing your fucking games, thinking you can come back like nothing happened?"
-
-An inch higher, and this grip of steel could easily strangle, and it's very doubtful Moriarty could effectively resist it, but that hand doesn't move up. Moran is capable of choking JM to death but that doesn't mean he actually can.
-"Give me a reason," Sebastian hisses, and it's a white flag already. They both know it.</p>`
+    text: `<p>For the whole life Moran was taught to keep calm in any situation. Whatever happens, keep your head, never let emotions take over, cage the rage, be armed with patience. Well, a big advantage, if you think of it, and also a necessary skill for a good sniper.</p>
+<p>Yet right now he feels like all the years of such experience can vanish in a blink of an eye. Looking straight in dark eyes, as if trying to read something between the lines, Moran feels an unbearable tension in his hands.</p>
+<p>And actually, yes, he asked the question and got the answer, and it's so fucking routine when JM is absolutely right with a grain of salt and his well-played fake smile.</p>
+<p>It takes effort not to move and keep sight line when Moriarty leans closer. It takes bigger effort to stay visibly calm while listening to that velvet, cushioned voice.</p>
+Yet when Moran feels that very slight touch, something inside cracks and breaks.</p>
+<p>"What is that I want?" he asks, his voice still calm and cold. Absolutely not reflecting a bitter flame rising inside, like bile fluttering in his throat. "Shouldn't you've been asking that two bloody years ago, huh? Or wait... you never ever should do something, right?"
+The same bitterness is almost material in his voice. And it's like a timer ticking down to zero.</p>
+<p>Two years later Moran is still same hard as nails, and his reaction is quick enough that JM can't block a movement of his arm. Slender but strong fingers seize JM by the collar at a flash, a motion so smooth that both cups on the table don't spill a drop.</p>
+"You fucking selfish moron," Sebastian hisses, feeling he's getting short of breath, "playing your fucking games, thinking you can come back like nothing happened?"</p>
+<p>An inch higher, and this grip of steel could easily strangle, and it's very doubtful Moriarty could effectively resist it, but that hand doesn't move up. Moran is capable of choking JM to death but that doesn't mean he actually can.</p>
+<p>"Give me a reason," Sebastian hisses, and it's a white flag already. They both know it.</p>`
 };
 
 pagesData[12] = {
@@ -2161,113 +2052,100 @@ pagesData[94] = {
 <p>Back to the question... "I could use your help, actually," he says to Sebastian while scooping the ice cream – something he's been craving. "Some young blood. A lad, he's a sniper, just like you. Didn't have time to get anyone appointed to do the recruiting, so why won't you go have a look? Test him as you please and then tell me what you think."</p>
 <p>While saying this, he checks the CCTV live snapshots to see the frozen image of Mycroft Holmes heading to the Baker Street. Of course, the Lord Mayor went to him first, and now he's going to convince Sherlock to take this case. JM decides he's gonna spend some time in his room, tracking their progress; thinking.</p>`
 };
-
-
-    const storySection = document.getElementById('storySection');
-    storySection.innerHTML = '';
+    
+    const storyDiv = document.getElementById('storySection');
+    storyDiv.innerHTML = '';
     const jmIcon = 'https://aibel.ru/media/chars/ava/img20260421112322_56517366.gif';
     const smIcon = 'https://aibel.ru/media/chars/ava/img20260421133157_32736372.gif';
     const pageElements = [];
-
-    for (let i = 0; i < pagesData.length; i++) {
-        const page = pagesData[i];
-        const isJM = page.author === "JM";
-        const icon = isJM ? jmIcon : smIcon;
-        const smClass = isJM ? "" : "sm-style";
-        const pageDiv = document.createElement('div');
-        pageDiv.id = `page${i+1}`;
-        pageDiv.className = 'story-page';
-        if (i !== 0) pageDiv.style.display = 'none';
-        pageDiv.innerHTML = `<div class="icon-user-row"><img src="${icon}" alt="${page.author} icon"><span class="username">${page.author}</span></div><div class="story-text ${smClass}" id="storyText${i+1}">${page.text}</div><div class="page-number">page ${i+1} of ${TOTAL_PAGES}</div><div class="nav-arrow">${i > 0 ? '<button class="arrow-btn">←</button>' : ''}${i < pagesData.length - 1 ? '<button class="arrow-btn">→</button>' : ''}</div>`;
-        storySection.appendChild(pageDiv);
-        pageElements.push(pageDiv);
-        applyCursiveFormatting(document.getElementById(`storyText${i+1}`));
-        if (i > 0) pageDiv.querySelector('.nav-arrow .arrow-btn:first-child')?.addEventListener('click', () => showPage(i - 1));
-        if (i < pagesData.length - 1) pageDiv.querySelector('.nav-arrow .arrow-btn:last-child')?.addEventListener('click', () => showPage(i + 1));
+    
+    for (let i = 0; i < pages.length; i++) {
+        const p = pages[i];
+        const isJM = p.author === "JM";
+        const el = document.createElement('div');
+        el.className = 'story-page';
+        if (i !== 0) el.style.display = 'none';
+        el.innerHTML = `<div class="icon-user-row"><img src="${isJM ? jmIcon : smIcon}"><span class="username">${p.author}</span></div>
+            <div class="story-text ${isJM ? '' : 'sm-style'}" id="storyText${i+1}">${p.text}</div>
+            <div class="page-number">page ${i+1} of ${TOTAL}</div>
+            <div class="nav-arrow">${i > 0 ? '<button class="arrow-btn">←</button>' : ''}${i < TOTAL - 1 ? '<button class="arrow-btn">→</button>' : ''}</div>`;
+        storyDiv.appendChild(el);
+        pageElements.push(el);
+        applyCursive(document.getElementById(`storyText${i+1}`));
+        if (i > 0) el.querySelector('.nav-arrow .arrow-btn:first-child')?.addEventListener('click', () => goTo(i - 1));
+        if (i < TOTAL - 1) el.querySelector('.nav-arrow .arrow-btn:last-child')?.addEventListener('click', () => goTo(i + 1));
     }
     
-    const resetBtn = document.createElement('button');
-    resetBtn.id = 'resetBtn';
-    resetBtn.className = 'reset-button';
-    resetBtn.textContent = '[ lock screen ]';
-    storySection.appendChild(resetBtn);
+    const reset = document.createElement('button');
+    reset.id = 'resetBtn';
+    reset.className = 'reset-button';
+    reset.textContent = '[ lock screen ]';
+    storyDiv.appendChild(reset);
     
-    let currentPageIndex = 0;
-    function showPage(index) {
-        if (index < 0) index = 0;
-        if (index >= pageElements.length) index = pageElements.length - 1;
+    let current = 0;
+    function goTo(idx) {
+        if (idx < 0) idx = 0;
+        if (idx >= pageElements.length) idx = pageElements.length - 1;
         pageElements.forEach(p => p.style.display = 'none');
-        pageElements[index].style.display = 'block';
-        currentPageIndex = index;
+        pageElements[idx].style.display = 'block';
+        current = idx;
     }
     
     window.addEventListener('keydown', (e) => {
-        if (storySection.style.display === 'flex') {
-            if (e.key === 'ArrowLeft') { e.preventDefault(); if (currentPageIndex > 0) showPage(currentPageIndex - 1); }
-            else if (e.key === 'ArrowRight') { e.preventDefault(); if (currentPageIndex < pageElements.length - 1) showPage(currentPageIndex + 1); }
+        if (storyDiv.style.display === 'flex') {
+            if (e.key === 'ArrowLeft') { e.preventDefault(); if (current > 0) goTo(current - 1); }
+            if (e.key === 'ArrowRight') { e.preventDefault(); if (current < TOTAL - 1) goTo(current + 1); }
         }
     });
     
     document.querySelectorAll('#tocList a').forEach(link => {
         link.addEventListener('click', () => {
-            const targetPage = parseInt(link.getAttribute('data-page'), 10);
-            if (!isNaN(targetPage) && targetPage >= 0 && targetPage < pageElements.length && storySection.style.display === 'flex') showPage(targetPage);
+            const target = parseInt(link.dataset.page);
+            if (!isNaN(target) && storyDiv.style.display === 'flex') goTo(target);
         });
     });
     
-    const gateSection = document.getElementById('gateSection');
-    const passwordInput = document.getElementById('passwordInput');
-    const submitBtn = document.getElementById('submitBtn');
-    const errorMsgDiv = document.getElementById('errorMsg');
-    const storySectionElem = document.getElementById('storySection');
-    const tocContainer = document.getElementById('tocContainer');
-    const playlistBox = document.getElementById('playlistContainer');
+    // Password with hashing - NO CONSOLE LOGS
+    const gate = document.getElementById('gateSection');
+    const pwdInput = document.getElementById('passwordInput');
+    const submit = document.getElementById('submitBtn');
+    const err = document.getElementById('errorMsg');
+    const storyContainer = document.getElementById('storySection');
+    const toc = document.getElementById('tocContainer');
+    const playlist = document.getElementById('playlistContainer');
     
-    function unlockContent() {
-        gateSection.style.display = 'none';
-        storySectionElem.style.display = 'flex';
-        if (tocContainer) tocContainer.classList.add('visible');
-        if (playlistBox) playlistBox.classList.add('visible');
-        showPage(0);
-        if (errorMsgDiv) errorMsgDiv.style.display = 'none';
-    }
-    
-    function lockContent() {
-        gateSection.style.display = 'flex';
-        storySectionElem.style.display = 'none';
-        if (tocContainer) tocContainer.classList.remove('visible');
-        if (playlistBox) playlistBox.classList.remove('visible');
-        if (passwordInput) { passwordInput.value = ''; passwordInput.focus(); }
-        if (errorMsgDiv) errorMsgDiv.style.display = 'none';
-        showPage(0);
-    }
-    
-    async function handlePasswordSubmit() {
-        const enteredPassword = passwordInput.value;
-        const enteredHash = await hashPassword(enteredPassword);
+    async function unlock() {
+        const enteredHash = await hashPassword(pwdInput.value);
         if (enteredHash === CORRECT_HASH) {
-            unlockContent();
+            gate.style.display = 'none';
+            storyContainer.style.display = 'flex';
+            if (toc) toc.classList.add('visible');
+            if (playlist) playlist.classList.add('visible');
+            goTo(0);
+            err.style.display = 'none';
         } else {
-            errorMsgDiv.style.display = 'block';
-            errorMsgDiv.innerText = '[ access denied ]';
-            setTimeout(() => { if (errorMsgDiv && gateSection.style.display !== 'none') errorMsgDiv.style.display = 'none'; }, 2000);
-            passwordInput.value = '';
-            passwordInput.focus();
+            err.style.display = 'block';
+            setTimeout(() => err.style.display = 'none', 2000);
+            pwdInput.value = '';
+            pwdInput.focus();
         }
     }
     
-    submitBtn.addEventListener('click', handlePasswordSubmit);
-    passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); handlePasswordSubmit(); } });
-    const globalReset = document.getElementById('resetBtn');
-    if (globalReset) globalReset.addEventListener('click', lockContent);
+    function lockAll() {
+        gate.style.display = 'flex';
+        storyContainer.style.display = 'none';
+        if (toc) toc.classList.remove('visible');
+        if (playlist) playlist.classList.remove('visible');
+        pwdInput.value = '';
+        pwdInput.focus();
+        goTo(0);
+    }
     
-    window.addEventListener('DOMContentLoaded', () => { lockContent(); renderPlaylist(); });
+    submit.onclick = unlock;
+    pwdInput.onkeypress = (e) => { if (e.key === 'Enter') unlock(); };
+    document.getElementById('resetBtn').onclick = lockAll;
     
-    window.pagesData = pagesData;
-    window.showPage = showPage;
-    window.addTrack = addTrack;
-    console.log;
-    console.log;
+    window.addEventListener('DOMContentLoaded', () => { lockAll(); renderPlaylist(); });
 </script>
 </body>
 </html>
