@@ -500,16 +500,12 @@
 </div>
 
 <script>
+    // ============================================================
+    // SIMPLE PASSWORD CHECK - NO HASH, NO CRYPTO
+    // PASSWORD: stayalive
+    // ============================================================
     
-    const CORRECT_HASH = "ee26b0dd4af7e749aa1a8ee3c10ae9923f618980772e473f8819a5d4940e0db27";
-    
-    async function hashPassword(password) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(password);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    const CORRECT_PASSWORD = "stayalive";
     
     // Simple Audio Player
     class SimpleAudioPlayer {
@@ -623,7 +619,6 @@
         walk(element);
     }
     
-    // Generate 95 pages
     const TOTAL = 95;
     const pages = [];
    
@@ -2053,7 +2048,7 @@ pagesData[94] = {
 <p>While saying this, he checks the CCTV live snapshots to see the frozen image of Mycroft Holmes heading to the Baker Street. Of course, the Lord Mayor went to him first, and now he's going to convince Sherlock to take this case. JM decides he's gonna spend some time in his room, tracking their progress; thinking.</p>`
 };
     
-    const storyDiv = document.getElementById('storySection');
+   const storyDiv = document.getElementById('storySection');
     storyDiv.innerHTML = '';
     const jmIcon = 'https://aibel.ru/media/chars/ava/img20260421112322_56517366.gif';
     const smIcon = 'https://aibel.ru/media/chars/ava/img20260421133157_32736372.gif';
@@ -2105,7 +2100,7 @@ pagesData[94] = {
         });
     });
     
-    // Password with hashing - NO CONSOLE LOGS
+    // Simple password check - works everywhere
     const gate = document.getElementById('gateSection');
     const pwdInput = document.getElementById('passwordInput');
     const submit = document.getElementById('submitBtn');
@@ -2114,9 +2109,8 @@ pagesData[94] = {
     const toc = document.getElementById('tocContainer');
     const playlist = document.getElementById('playlistContainer');
     
-    async function unlock() {
-        const enteredHash = await hashPassword(pwdInput.value);
-        if (enteredHash === CORRECT_HASH) {
+    function unlock() {
+        if (pwdInput.value === CORRECT_PASSWORD) {
             gate.style.display = 'none';
             storyContainer.style.display = 'flex';
             if (toc) toc.classList.add('visible');
