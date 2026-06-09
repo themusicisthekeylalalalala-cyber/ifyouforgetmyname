@@ -2135,7 +2135,7 @@ The paperchecks turn out to be medical prescriptions: some heavy neurological st
     });
     
     // Simple password check
-    const gate = document.getElementById('gateSection');
+const gate = document.getElementById('gateSection');
     const pwdInput = document.getElementById('passwordInput');
     const submit = document.getElementById('submitBtn');
     const err = document.getElementById('errorMsg');
@@ -2144,16 +2144,17 @@ The paperchecks turn out to be medical prescriptions: some heavy neurological st
     const playlist = document.getElementById('playlistContainer');
     
     function unlock() {
-        if (pwdInput.value === CORRECT_PASSWORD) {
+        var enteredPassword = pwdInput.value;
+        if (enteredPassword === "stayalive") {
             gate.style.display = 'none';
             storyContainer.style.display = 'flex';
             if (toc) toc.classList.add('visible');
             if (playlist) playlist.classList.add('visible');
-            goTo(0);
+            if (typeof goTo === 'function') goTo(0);
             err.style.display = 'none';
         } else {
             err.style.display = 'block';
-            setTimeout(() => err.style.display = 'none', 2000);
+            setTimeout(function() { err.style.display = 'none'; }, 2000);
             pwdInput.value = '';
             pwdInput.focus();
         }
@@ -2166,12 +2167,16 @@ The paperchecks turn out to be medical prescriptions: some heavy neurological st
         if (playlist) playlist.classList.remove('visible');
         pwdInput.value = '';
         pwdInput.focus();
-        goTo(0);
+        if (typeof goTo === 'function') goTo(0);
     }
     
+    // CONNECT THE BUTTON - THIS IS CRITICAL
     submit.onclick = unlock;
-    pwdInput.onkeypress = (e) => { if (e.key === 'Enter') unlock(); };
-    document.getElementById('resetBtn').onclick = lockAll;
+    pwdInput.onkeypress = function(e) { if (e.key === 'Enter') unlock(); };
+    
+    // Find reset button and connect it
+    var resetButton = document.getElementById('resetBtn');
+    if (resetButton) resetButton.onclick = lockAll;
     
     window.addEventListener('DOMContentLoaded', () => { lockAll(); renderPlaylist(); });
 </script>
