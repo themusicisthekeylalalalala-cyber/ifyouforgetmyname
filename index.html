@@ -2147,21 +2147,26 @@ The paperchecks turn out to be medical prescriptions: some heavy neurological st
     const toc = document.getElementById('tocContainer');
     const playlist = document.getElementById('playlistContainer');
     
-    function unlock() {
-        if (pwdInput.value === "stayalive") {
-            gate.style.display = 'none';
-            storyContainer.style.display = 'flex';
-            if (toc) toc.classList.add('visible');
-            if (playlist) playlist.classList.add('visible');
-            goTo(0);
-            err.style.display = 'none';
-        } else {
-            err.style.display = 'block';
-            setTimeout(() => err.style.display = 'none', 2000);
-            pwdInput.value = '';
-            pwdInput.focus();
-        }
+function unlock() {
+    var entered = pwdInput.value;
+    alert("You entered: '" + entered + "'");
+    alert("Comparing to: 'stayalive'");
+    if (entered === "stayalive") {
+        alert("unlocking...");
+        gate.style.display = 'none';
+        storyContainer.style.display = 'flex';
+        if (toc) toc.classList.add('visible');
+        if (playlist) playlist.classList.add('visible');
+        goTo(0);
+        err.style.display = 'none';
+    } else {
+        alert("access denied");
+        err.style.display = 'block';
+        setTimeout(() => err.style.display = 'none', 2000);
+        pwdInput.value = '';
+        pwdInput.focus();
     }
+}
     
     function lockAll() {
         gate.style.display = 'flex';
