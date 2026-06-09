@@ -493,7 +493,7 @@
         <div class="content-panel">
             <div id="gateSection" class="gate">
                 <div class="password-input-group">
-                    <input type="password" id="passwordInput" placeholder="password" autocomplete="off" autofocus>
+                    <input type="password" id="passwordInput" placeholder="passphrase" autocomplete="off" autofocus>
                     <button id="submitBtn">unlock</button>
                 </div>
                 <div id="errorMsg" class="error-msg" style="display: none;">[ access denied ]</div>
@@ -504,6 +504,10 @@
 </div>
 
 <script>
+    // ============================================================
+    // SIMPLE PASSWORD CHECK - NO HASH, NO CRYPTO
+    // PASSWORD: stayalive
+    // ============================================================
     
     const CORRECT_PASSWORD = "stayalive";
     
@@ -557,7 +561,10 @@
         format(t) { if (isNaN(t)) return '0:00'; const m = Math.floor(t/60); const s = Math.floor(t%60); return `${m}:${s.toString().padStart(2,'0')}`; }
     }
     
-    // PLAYLIST TRACKS
+    // UPDATED PLAYLIST TRACKS
+    // Removed: meat beat manifesto -- she's unreal
+    // Added: london bridge is falling down
+    // Added: black box recorder - england made me
     const tracks = [
         { name: "bjork - play dead", url: "https://song.muzvibe.org/download/3332b73437363733b2883731353332b63436b40000/8ea4ed227d31af7bbefa9a4dd981a6bc/Bj%C3%B6rk%20-%20The%20Best%20Of%20Bj%C3%B6rk%20%5B2014%5D%20-%2005.%20Bj%C3%B6rk%20%26%20David%20Arnold%20-%20Play%20Dead.mp3" },
         { name: "bjork - bachelorette", url: "https://song.muzvibe.org/play/33313731b1b43432308b3731353333353337360700/bab081ddc8870c1f2d81c67dca2ba3d2/Bj%C3%B6rk%20-%20Bachelorette.mp3" },
@@ -622,10 +629,10 @@
         walk(element);
     }
     
-    // Generate 97 pages
-    const TOTAL = 97;
-const pages = [];
-pagesData[0] = {
+    // Generate 95 pages
+    const TOTAL = 95;
+    const pages = [];
+    pagesData[0] = {
     author: "JM",
     text: `<p>Two years, and you could move on, start a family, try to live a normal life. But you didn't. How come?</p>
     <p>You're convinced the war broke you beyond repair. Even in your mind you still can't face that it was love beyond anything else that kept you waiting. To admit that you loved James Moriarty, the little bitch he was, would be crushing.</p>
@@ -2080,8 +2087,7 @@ The paperchecks turn out to be medical prescriptions: some heavy neurological st
 <p>Years ago Sebastian was tested too, and he was not easy to bend – one had to deserve his loyalty. How well does Moran remember that day? What was it that finally got him?</p>
 <p>The old shooting range is another place in the suburbs, which used to be occupied with Moriarty's enforcers, training, boxing, beating the shit out of each other, or just drinking beer and playing billiards. But it looks rather abandoned now, except the protected storage on the basement level has been opened recently, refilled with all kinds of equipment: knives, guns, and even a jigsaw. So JM wasn't joking when he said: "Test him as you please."</p>
 <p>And it seems like there's someone's breathing in the basement, tied up and too tired to even muffle.</p>`
-};
-    
+}; };
     }
     
     const storyDiv = document.getElementById('storySection');
@@ -2136,6 +2142,7 @@ The paperchecks turn out to be medical prescriptions: some heavy neurological st
         });
     });
     
+    // Simple password check
     const gate = document.getElementById('gateSection');
     const pwdInput = document.getElementById('passwordInput');
     const submit = document.getElementById('submitBtn');
