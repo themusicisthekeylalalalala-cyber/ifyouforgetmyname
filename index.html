@@ -493,7 +493,7 @@
         <div class="content-panel">
             <div id="gateSection" class="gate">
                 <div class="password-input-group">
-                    <input type="password" id="passwordInput" placeholder="password" autocomplete="off" autofocus>
+                    <input type="password" id="passwordInput" placeholder="passphrase" autocomplete="off" autofocus>
                     <button id="submitBtn">unlock</button>
                 </div>
                 <div id="errorMsg" class="error-msg" style="display: none;">[ access denied ]</div>
@@ -504,6 +504,12 @@
 </div>
 
 <script>
+    // ============================================================
+    // SIMPLE PASSWORD CHECK - NO HASH, NO CRYPTO
+    // PASSWORD: stayalive
+    // ============================================================
+    
+    const CORRECT_PASSWORD = "stayalive";
     
     // Simple Audio Player
     class SimpleAudioPlayer {
@@ -555,7 +561,10 @@
         format(t) { if (isNaN(t)) return '0:00'; const m = Math.floor(t/60); const s = Math.floor(t%60); return `${m}:${s.toString().padStart(2,'0')}`; }
     }
     
-    // PLAYLIST TRACKS
+    // UPDATED PLAYLIST TRACKS
+    // Removed: meat beat manifesto -- she's unreal
+    // Added: london bridge is falling down
+    // Added: black box recorder - england made me
     const tracks = [
         { name: "bjork - play dead", url: "https://song.muzvibe.org/download/3332b73437363733b2883731353332b63436b40000/8ea4ed227d31af7bbefa9a4dd981a6bc/Bj%C3%B6rk%20-%20The%20Best%20Of%20Bj%C3%B6rk%20%5B2014%5D%20-%2005.%20Bj%C3%B6rk%20%26%20David%20Arnold%20-%20Play%20Dead.mp3" },
         { name: "bjork - bachelorette", url: "https://song.muzvibe.org/play/33313731b1b43432308b3731353333353337360700/bab081ddc8870c1f2d81c67dca2ba3d2/Bj%C3%B6rk%20-%20Bachelorette.mp3" },
@@ -620,7 +629,6 @@
         walk(element);
     }
     
-    // Generate 97 pages
     const TOTAL = 97;
     const pages = [];
     for (let i = 0; i < TOTAL; i++) {
@@ -2084,8 +2092,7 @@ The paperchecks turn out to be medical prescriptions: some heavy neurological st
 <p>And it seems like there's someone's breathing in the basement, tied up and too tired to even muffle.</p>`
 };
   
-
-   }
+    }
     
     const storyDiv = document.getElementById('storySection');
     storyDiv.innerHTML = '';
@@ -2139,6 +2146,7 @@ The paperchecks turn out to be medical prescriptions: some heavy neurological st
         });
     });
     
+    // Simple password check
     const gate = document.getElementById('gateSection');
     const pwdInput = document.getElementById('passwordInput');
     const submit = document.getElementById('submitBtn');
@@ -2147,26 +2155,21 @@ The paperchecks turn out to be medical prescriptions: some heavy neurological st
     const toc = document.getElementById('tocContainer');
     const playlist = document.getElementById('playlistContainer');
     
-function unlock() {
-    var entered = pwdInput.value;
-    alert("You entered: '" + entered + "'");
-    alert("Comparing to: 'stayalive'");
-    if (entered === "stayalive") {
-        alert("unlocking...");
-        gate.style.display = 'none';
-        storyContainer.style.display = 'flex';
-        if (toc) toc.classList.add('visible');
-        if (playlist) playlist.classList.add('visible');
-        goTo(0);
-        err.style.display = 'none';
-    } else {
-        alert("access denied");
-        err.style.display = 'block';
-        setTimeout(() => err.style.display = 'none', 2000);
-        pwdInput.value = '';
-        pwdInput.focus();
+    function unlock() {
+        if (pwdInput.value === CORRECT_PASSWORD) {
+            gate.style.display = 'none';
+            storyContainer.style.display = 'flex';
+            if (toc) toc.classList.add('visible');
+            if (playlist) playlist.classList.add('visible');
+            goTo(0);
+            err.style.display = 'none';
+        } else {
+            err.style.display = 'block';
+            setTimeout(() => err.style.display = 'none', 2000);
+            pwdInput.value = '';
+            pwdInput.focus();
+        }
     }
-}
     
     function lockAll() {
         gate.style.display = 'flex';
