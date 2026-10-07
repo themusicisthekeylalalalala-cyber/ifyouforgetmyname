@@ -399,6 +399,13 @@
             font-style: italic;
         }
 
+.story-image img {
+    max-width: 100%;
+    height: auto;
+    display: inline-block;
+    border: 1px solid #2a2a2a;
+}
+        
         .page-number {
             font-family: 'Courier New', monospace;
             font-size: 0.65rem;
@@ -2624,7 +2631,7 @@ pagesData[102] = {
 <p>Dare frame thy fearful symmetry?</p>
 
 <p>— William Blake, The Tyger (Songs of Experience, 1794)</p>`,
-image: "https://raw.githubusercontent.com/themusicisthekeylalalalala-cyber/ifyouforgetmyname/main/IMG_20260821_13005_247.jpg"
+image: "https://raw.githubusercontent.com/themusicisthekeylalalalala-cyber/ifyouforgetmyname/main/IMG_20260821_233005_247.jpg"
 
     };
 
@@ -3441,6 +3448,19 @@ pagesData[161] = {
         textDiv.className = `story-text ${smClass}`;
         textDiv.innerHTML = page.text;
         pageDiv.appendChild(textDiv);
+
+if (page.image) {
+    const imgWrap = document.createElement('div');
+    imgWrap.className = 'story-image';
+
+    const img = document.createElement('img');
+    img.src = page.image;
+    img.loading = 'lazy';
+    img.alt = '';
+    imgWrap.appendChild(img);
+
+    pageDiv.appendChild(imgWrap);
+}
         
         const pageNumberDiv = document.createElement('div');
         pageNumberDiv.className = 'page-number';
