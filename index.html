@@ -29,7 +29,7 @@
         .main-layout {
             display: flex;
             gap: 2rem;
-            max-width: 1200px;
+            max-width: 1400px;
             width: 100%;
             align-items: flex-start;
         }
@@ -538,57 +538,50 @@
             border-radius: 0px !important;
         }
 
-        .author-corner {
-            position: fixed;
-            bottom: 0.8rem;
-            right: 0.8rem;
-            z-index: 500;
-            width: 220px;
-            max-width: calc(100vw - 1.6rem);
+.author-corner {
+            width: 240px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 2rem;
+            max-height: calc(100vh - 4rem);
             background: #050505;
-            border: 1px solid #1f1f1f;
-            padding: 0.5rem 0.6rem 0.6rem 0.6rem;
-            opacity: 0.55;
-            transition: opacity 0.15s;
-            border-radius: 0 !important;
-            font-family: 'Courier New', monospace;
-            font-size: 0.55rem;
-            line-height: 1.5;
-            color: #6a6a6a;
-            pointer-events: auto;
+            border: 1px solid #2a2a2a;
+            padding: 1rem 0.8rem;
             display: none;
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            line-height: 1.55;
+            color: #7a7a7a;
         }
 
         .author-corner.visible {
             display: block;
         }
 
-        .author-corner:hover {
-            opacity: 1;
-        }
-
         .author-corner-header {
-            font-size: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
             letter-spacing: 2px;
+            color: #6a6a6a;
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
             text-transform: uppercase;
-            color: #4a4a4a;
-            border-bottom: 1px solid #1a1a1a;
-            padding-bottom: 0.25rem;
-            margin-bottom: 0.4rem;
+            text-align: center;
         }
 
         .author-corner-body {
-            max-height: 40vh;
+            max-height: calc(100vh - 8rem);
             overflow-y: auto;
         }
 
         .author-corner-body::-webkit-scrollbar {
-            width: 4px;
+            width: 6px;
             background: #0a0a0a;
         }
 
         .author-corner-body::-webkit-scrollbar-thumb {
-            background: #222;
+            background: #2c2c2c;
         }
 
         .author-corner-item {
@@ -601,23 +594,23 @@
 
         .author-corner-date {
             display: block;
-            color: #444;
-            font-size: 0.5rem;
+            color: #555;
+            font-size: 0.55rem;
             letter-spacing: 1px;
             text-transform: uppercase;
-            margin-bottom: 0.1rem;
+            margin-bottom: 0.15rem;
         }
 
         .author-corner-text {
-            color: #7a7a7a;
+            color: #8a8a8a;
         }
 
         .author-corner-text em {
             font-style: italic;
-            color: #8a8a8a;
+            color: #a0a0a0;
         }
 
-        /* On phones: move to end of page, in flow */
+        
         @media (max-width: 600px) {
             .author-corner {
                 position: static;
@@ -657,7 +650,7 @@
             }
         }
         
-        @media (max-width: 800px) {
+         @media (max-width: 800px) {
             .main-layout {
                 flex-direction: column;
             }
@@ -678,6 +671,16 @@
             .volume-bar {
                 width: 30px;
             }
+            .author-corner {                 
+                width: 100%;                 
+                position: static;            
+                max-height: none;            
+                order: 3;                       
+            }                                  
+            .author-corner-body {              
+                max-height: none;               
+                overflow: visible;              
+            }                                   
         }
     </style>
 </head>
@@ -727,12 +730,12 @@
             </div>
             <div id="storySection" class="story-section"></div>
         </div>
-                <aside id="authorCorner" class="author-corner">
-            <div class="author-corner-header">updates</div>
-            <div id="authorCornerBody" class="author-corner-body"></div>
-        </aside>
     </div>
     </div>
+    <aside id="authorCorner" class="author-corner">
+        <div class="author-corner-header">updates</div>
+        <div id="authorCornerBody" class="author-corner-body"></div>
+    </aside>
 </div>
 
 <script>
