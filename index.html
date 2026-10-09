@@ -487,7 +487,7 @@
             flex-shrink: 0;
         }
 
-        .blinkie-strip {
+  .blinkie-strip {
             flex: 1 1 auto;
             display: flex;
             flex-direction: column;
@@ -502,6 +502,7 @@
             display: flex;
             gap: 6px;
             justify-content: flex-end;
+            align-items: center;
         }
 
         .blinkie-strip img {
@@ -509,6 +510,16 @@
             width: auto;
             image-rendering: pixelated;
             display: block;
+        }
+
+        .blinkie-strip img.blinkie-tiger {
+            height: 34px;
+            margin-right: 4px;
+        }
+
+        .blinkie-spacer {
+            display: inline-block;
+            width: 10px;
         }
 
         .username {
@@ -3685,13 +3696,17 @@ pagesData[162] = {
             <span class="username">${page.author}</span>
             <div class="blinkie-strip">
                 <div class="blinkie-row">
-                    <img src="tumblr_pa8n9hBrZF1xsbv6wo1_250.gif" alt="">
-                    <img src="tumblr_p33ma2nJJv1wkn6b0o5_250.gif" alt="">
-                    <img src="tumblr_p33ma2nJJv1wkn6b0o2_250.gif" alt="">
+                    <img class="blinkie-tiger" src="tiger_stamp_001__alt_colors__by_beepudding-dbzdfbs.png" alt="">
+                    <span class="blinkie-spacer"></span>
+                    <img src="blinkie-spiderweb.gif" alt="">
+                    <img src="blinkie-mischievous.gif" alt="">
+                    <img src="blinkie-80s.gif" alt="">
                 </div>
                 <div class="blinkie-row">
-                    <img src="tiger_stamp_001__alt_colors__by_beepudding-dbzdfbs.png" alt="">
-                    <img src="tumblr_ouf8rl1X8i1vi2ckno1_250.gif"">
+                    <img src="blinkie-bored.gif" alt="">
+                    <img src="blinkie-spoon.gif" alt="">
+                    <img src="blinkie-aim.gif" alt="">
+                    <img src="blinkie-dontkill.gif" alt="">
                 </div>
             </div>
         `;
