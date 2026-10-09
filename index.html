@@ -487,15 +487,22 @@
             flex-shrink: 0;
         }
 
-  .blinkie-strip {
+.blinkie-strip {
             flex: 1 1 auto;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            min-width: 0;
+            margin-left: auto;
+        }
+
+        .blinkie-rows {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            justify-content: center;
             gap: 4px;
-            min-width: 0;
-            margin-left: auto;
         }
 
         .blinkie-row {
@@ -513,7 +520,7 @@
         }
 
         .blinkie-strip img.blinkie-tiger {
-            height: 34px;
+            height: 44px;
             margin-right: 4px;
         }
 
@@ -3691,22 +3698,24 @@ pagesData[162] = {
         
          const iconRow = document.createElement('div');
         iconRow.className = 'icon-user-row';
- iconRow.innerHTML = `
+iconRow.innerHTML = `
             <img src="${icon}" alt="${page.author} icon">
             <span class="username">${page.author}</span>
             <div class="blinkie-strip">
-                <div class="blinkie-row">
-                    <img class="blinkie-tiger" src="tiger_stamp_001__alt_colors__by_beepudding-dbzdfbs.png" alt="">
-                    <span class="blinkie-spacer"></span>
-                    <img src="0275-spiderweb.gif" alt="">
-                    <img src="blinkie-tumblr1.gif.gif" alt="">
-                    <img src="blinkie-tumblr2.gif.gif" alt="">
-                </div>
-                <div class="blinkie-row">
-                    <img src="blinkie-tumblr3.gif.gif" alt="">
-                    <img src="blinkie4.gif" alt="">
-                    <img src="blinkie-aim.gif.gif" alt="">
-                    <img src="blinkie-guns.gif.gif" alt="">
+                <img class="blinkie-tiger" src="tiger_stamp_001__alt_colors__by_beepudding-dbzdfbs.png" alt="">
+                <div class="blinkie-rows">
+                    <div class="blinkie-row">
+                        <img src="0275-spiderweb.gif" alt="">
+                        <img src="blinkie-tumblr1.gif.gif" alt="">
+                        <img src="blinkie-tumblr2.gif.gif" alt="">
+                        <img src="z8c9dh3.gif" alt="">
+                    </div>
+                    <div class="blinkie-row">
+                        <img src="blinkie-tumblr3.gif.gif" alt="">
+                        <img src="blinkie4.gif" alt="">
+                        <img src="blinkie-aim.gif.gif" alt="">
+                        <img src="blinkie-guns.gif.gif" alt="">
+                    </div>
                 </div>
             </div>
         `;
