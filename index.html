@@ -698,7 +698,7 @@
             }
         }
         
-        @media (max-width: 800px) {
+       @media (max-width: 800px) {
             .main-layout {
                 flex-direction: column;
             }
@@ -729,13 +729,23 @@
                 max-height: none;
                 overflow: visible;
             }
-            .blinkie-strip {                
-                margin-left: 12px;          
-                align-items: flex-start;    
-            }                               
-            .blinkie-row {                  
+            .blinkie-strip {
+                margin-left: 12px;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            .blinkie-rows {
+                align-items: flex-start;
+            }
+            .blinkie-row {
                 justify-content: flex-start;
-            }                                                           
+            }
+            .blinkie-strip img {
+                height: 16px;
+            }
+            .blinkie-strip img.blinkie-tiger {
+                height: 34px;
+            }
         }
     </style>
 </head>
