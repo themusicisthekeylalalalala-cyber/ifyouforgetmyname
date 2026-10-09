@@ -123,18 +123,17 @@
             text-transform: uppercase;
         }
 
-       .toc a {
+        .toc a {
             display: flex;
-            align-items: baseline;
+            align-items: flex-end;
             gap: 0.35rem;
         }
 
         .toc a .toc-title {
             flex: 0 1 auto;
             min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            white-space: normal;
+            word-break: break-word;
         }
 
         .toc a .toc-dots {
