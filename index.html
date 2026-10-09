@@ -3571,7 +3571,15 @@ if (page.image) {
         });
     });
     
-    const CORRECT_PASSWORD = "stayalive";
+    const CORRECT_HASH = "5534cb16753839ce5b1b1ca641845fd7e540ae24bd2ad917e62f406dc953620d";
+
+async function sha256(text) {
+    const buf = new TextEncoder().encode(text);
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    return Array.from(new Uint8Array(digest))
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
+}
     const gateSection = document.getElementById('gateSection');
     const passwordInput = document.getElementById('passwordInput');
     const submitBtn = document.getElementById('submitBtn');
@@ -3602,19 +3610,20 @@ if (page.image) {
         showPage(0);
     }
     
-    function handlePasswordSubmit() {
-        if (passwordInput.value === CORRECT_PASSWORD) {
-            unlockContent();
-        } else {
-            errorMsgDiv.style.display = 'block';
-            errorMsgDiv.innerText = '[ access denied ]';
-            setTimeout(() => {
-                if (errorMsgDiv && gateSection.style.display !== 'none') errorMsgDiv.style.display = 'none';
-            }, 2000);
-            passwordInput.value = '';
-            passwordInput.focus();
-        }
+async function handlePasswordSubmit() {
+    const hash = await sha256(passwordInput.value);
+    if (hash === CORRECT_HASH) {
+        unlockContent();
+    } else {
+        errorMsgDiv.style.display = 'block';
+        errorMsgDiv.innerText = '[ access denied ]';
+        setTimeout(() => {
+            if (errorMsgDiv && gateSection.style.display !== 'none') errorMsgDiv.style.display = 'none';
+        }, 2000);
+        passwordInput.value = '';
+        passwordInput.focus();
     }
+}
     
     submitBtn.addEventListener('click', handlePasswordSubmit);
     passwordInput.addEventListener('keypress', (e) => {
