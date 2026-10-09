@@ -475,11 +475,40 @@
             border-bottom: 1px solid #2a2a2a;
         }
 
-        .icon-user-row img {
+        .icon-user-row > img {
             width: 80px;
             height: auto;
             border: none;
             background: transparent;
+            flex-shrink: 0;
+        }
+
+        .icon-user-row .username {
+            flex-shrink: 0;
+        }
+
+        .blinkie-strip {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 4px;
+            min-width: 0;
+            margin-left: auto;
+        }
+
+        .blinkie-row {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
+        .blinkie-strip img {
+            height: 20px;
+            width: auto;
+            image-rendering: pixelated;
+            display: block;
         }
 
         .username {
@@ -651,7 +680,7 @@
             }
         }
         
-         @media (max-width: 800px) {
+        @media (max-width: 800px) {
             .main-layout {
                 flex-direction: column;
             }
@@ -672,16 +701,23 @@
             .volume-bar {
                 width: 30px;
             }
-            .author-corner {                 
-                width: 100%;                 
-                position: static;            
-                max-height: none;            
-                order: 3;                       
-            }                                  
-            .author-corner-body {              
-                max-height: none;               
-                overflow: visible;              
-            }                                   
+            .author-corner {
+                width: 100%;
+                position: static;
+                max-height: none;
+                order: 3;
+            }
+            .author-corner-body {
+                max-height: none;
+                overflow: visible;
+            }
+            .blinkie-strip {                
+                margin-left: 12px;          
+                align-items: flex-start;    
+            }                               
+            .blinkie-row {                  
+                justify-content: flex-start;
+            }                                                           
         }
     </style>
 </head>
@@ -3642,9 +3678,23 @@ pagesData[162] = {
         pageDiv.className = 'story-page';
         if (i !== 0) pageDiv.style.display = 'none';
         
-        const iconRow = document.createElement('div');
+         const iconRow = document.createElement('div');
         iconRow.className = 'icon-user-row';
-        iconRow.innerHTML = `<img src="${icon}" alt="${page.author} icon"><span class="username">${page.author}</span>`;
+        iconRow.innerHTML = `
+            <img src="${icon}" alt="${page.author} icon">
+            <span class="username">${page.author}</span>
+            <div class="blinkie-strip">
+                <div class="blinkie-row">
+                    <img src="tumblr_pa8n9hBrZF1xsbv6wo1_250.gif" alt="">
+                    <img src="tumblr_p33ma2nJJv1wkn6b0o5_250.gif" alt="">
+                    <img src="tumblr_p33ma2nJJv1wkn6b0o2_250.gif" alt="">
+                </div>
+                <div class="blinkie-row">
+                    <img src="tiger_stamp_001__alt_colors__by_beepudding-dbzdfbs.png" alt="">
+                    <img src="tumblr_ouf8rl1X8i1vi2ckno1_250.gif"">
+                </div>
+            </div>
+        `;
         pageDiv.appendChild(iconRow);
         
         const textDiv = document.createElement('div');
