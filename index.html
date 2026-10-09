@@ -605,6 +605,11 @@
             </div>
             <div id="storySection" class="story-section"></div>
         </div>
+                <aside id="authorCorner" class="author-corner">
+            <div class="author-corner-header">updates</div>
+            <div id="authorCornerBody" class="author-corner-body"></div>
+        </aside>
+    </div>
     </div>
 </div>
 
@@ -3663,18 +3668,30 @@ async function handlePasswordSubmit() {
     const globalReset = document.getElementById('resetBtn');
     if (globalReset) globalReset.addEventListener('click', lockContent);
     
-    window.addEventListener('DOMContentLoaded', () => {
-        lockContent();
-        renderPlaylist();
-        renderAuthorCorner();
-        addPageNumbersToTOC();
-    });
-    
-    window.pagesData = pagesData;
-    window.showPage = showPage;
-    window.addTrack = addTrack;
-   
-     function addPageNumbersToTOC() {
+    const authorCornerNotes = [
+        {
+            date: "09-10-2026",
+            text: "i added a funny tab icon which should be visible in a browser (works on a phone too). added illustrations on pages 35, 59, 121. certain moments made me catch certain literary associations, so i've been referencing poetry on pages 121, 124, 163. don't look at the page 116 for too long... you'll get a headache :/"
+        }
+    ];
+
+    function renderAuthorCorner() {
+        const box = document.getElementById('authorCornerBody');
+        if (!box) return;
+        if (!authorCornerNotes.length) {
+            document.getElementById('authorCorner').style.display = 'none';
+            return;
+        }
+        box.innerHTML = authorCornerNotes.map(n => `
+            <div class="author-corner-item">
+                <span class="author-corner-date">${n.date}</span>
+                <span class="author-corner-text">${n.text}</span>
+            </div>
+        `).join('');
+    }
+
+    // ---------- TOC PAGE NUMBERS ----------
+    function addPageNumbersToTOC() {
         const tocLinks = document.querySelectorAll('#tocList a');
         tocLinks.forEach(link => {
             const pageNum = link.getAttribute('data-page');
@@ -3698,6 +3715,17 @@ async function handlePasswordSubmit() {
             link.appendChild(pageNumSpan);
         });
     }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        lockContent();
+        renderPlaylist();
+        renderAuthorCorner();
+        addPageNumbersToTOC();
+    });
+
+    window.pagesData = pagesData;
+    window.showPage = showPage;
+    window.addTrack = addTrack;
 </script>
 </body>
 </html>
