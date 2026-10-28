@@ -3868,26 +3868,39 @@ I had not thought death had undone so many." from The Waste Land by T.S. Eliot)<
         pageDiv.className = 'story-page';
         if (i !== 0) pageDiv.style.display = 'none';
         
-         const iconRow = document.createElement('div');
+const iconRow = document.createElement('div');
         iconRow.className = 'icon-user-row';
- iconRow.innerHTML = `
-            <img src="${icon}" alt="${page.author} icon">
-            <span class="username">${page.author}</span>
-            <div class="blinkie-strip">
-                <img class="blinkie-tiger" src="tiger_stamp_001__alt_colors__by_beepudding-dbzdfbs.png" alt="">
-                <div class="blinkie-rows">
-                    <div class="blinkie-row">
-                        <img src="blinkie-halloween.gif" alt="">
-                        <img src="blinkie-widow.gif" alt="">
-                        <img src="blinkie-eyes.webp" alt="">
-                    </div>
-                    <div class="blinkie-row">
-                        <img src="blinkie-teeth.webp" alt="">
-                        <img src="blinkie-moths.webp" alt="">
-                        <img src="blinkie-nevermore.gif" alt="">
+
+        let extraHtml = '';
+        if (page.author === "JM") {
+            extraHtml = `
+                <div class="blinkie-strip">
+                    <div class="blinkie-rows">
+                        <div class="blinkie-row">
+                            <img src="blinkie-teeth.gif" alt="">
+                            <img src="blinkie-widow.gif" alt="">
+                            <img src="blinkie-eyes.gif" alt="">
+                        </div>
+                        <div class="blinkie-row">
+                            <img src="blinkie-halloween.gif" alt="">
+                            <img src="blinkie-moths.gif" alt="">
+                            <img src="blinkie-nevermore.gif" alt="">
+                        </div>
                     </div>
                 </div>
-            </div>
+            `;
+        } else if (page.author === "SM") {
+            extraHtml = `
+                <div class="blinkie-strip">
+                    <img class="blinkie-tiger" src="tiger_stamp_001__alt_colors__by_beepudding-dbzdfbs.png" alt="">
+                </div>
+            `;
+        }
+
+        iconRow.innerHTML = `
+            <img src="${icon}" alt="${page.author} icon">
+            <span class="username">${page.author}</span>
+            ${extraHtml}
         `;
         pageDiv.appendChild(iconRow);
         
